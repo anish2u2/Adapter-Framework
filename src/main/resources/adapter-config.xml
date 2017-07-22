@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<framework>
+	<config>
+		<!-- This will be used for scanning classes implementations of InitFramework -->
+		<component scane-package="org.adapter.framework" />
+		<!-- This will be used for listening Event that Adapter framework is initialized -->
+		<listener framework-init-listener="org.adapter.framework.event.impl.AppEventListener" />
+	</config>
+</framework>
