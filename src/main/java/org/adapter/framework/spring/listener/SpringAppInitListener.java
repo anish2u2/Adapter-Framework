@@ -44,6 +44,11 @@ public class SpringAppInitListener implements ApplicationContextAware {
 							}
 							return context.getBean(targetClassType);
 						}
+
+						@Override
+						public Object getObject(String qualifier) {
+							return context.getBean(qualifier);
+						}
 					};
 				}
 			};

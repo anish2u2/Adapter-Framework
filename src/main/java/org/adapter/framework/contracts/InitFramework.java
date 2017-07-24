@@ -1,8 +1,10 @@
 package org.adapter.framework.contracts;
 
+import org.adapter.framework.event.contract.Context;
+
 public interface InitFramework {
 
-	public void init();
+	public Context init();
 
 	public void destroy();
 

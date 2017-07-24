@@ -13,6 +13,10 @@ public abstract class BeansFactory implements BeanFactory {
 		return beanFactories;
 	}
 
+	public static void addBeanFactory(BeanFactory beanFactory) {
+		beanFactories.add(beanFactory);
+	}
+
 	public static void setBeanFactories(Set<BeanFactory> beanFactories) {
 		BeansFactory.beanFactories = beanFactories;
 	}

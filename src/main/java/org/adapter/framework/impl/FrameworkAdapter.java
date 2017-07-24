@@ -38,8 +38,7 @@ public class FrameworkAdapter extends AbstractFrameworkAdapter {
 		public void loadClassfromPackage(String packageName) throws Exception {
 			System.out.println("Loading classes from package:" + packageName);
 			for (String classFiles : FilesUtility.readFileNamesOfTypeFromJarInPackage(packageName, null, ".class")) {
-				listOfLoadedClass
-						.add(super.loadClass(packageName + "." + classFiles.substring(0, classFiles.length() - 6)));
+				listOfLoadedClass.add(super.loadClass(classFiles.substring(0, classFiles.length() - 6)));
 			}
 		}
 

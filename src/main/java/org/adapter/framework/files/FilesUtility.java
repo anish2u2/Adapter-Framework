@@ -50,13 +50,15 @@ public class FilesUtility {
 	public static List<String> readFileNamesOfTypeFromJarInPackage(String packageName, String prefix, String suffix) {
 
 		System.out.println("Dir:" + dir);
-		if (dir.contains("file:"))
+		if (dir.contains("file:")) {
 			dir = dir.substring("file:".length(), dir.length());
+			dir = dir.substring(1);
+		}
 		/*
 		 * if (dir.startsWith(File.separator)) { dir = dir.substring(1,
 		 * dir.length()); }
 		 */
-		dir = dir.substring(1);
+
 		System.out.println("Looking into DIR:" + dir);
 		if (dir.endsWith(".jar")) {
 			return readFilesFromJar(dir, packageName, prefix, suffix);
@@ -74,16 +76,16 @@ public class FilesUtility {
 				if (jarEntry == null)
 					break;
 				if (prefix != null && suffix != null) {
-					addToList(listOfClass, jarEntry.getName().replace("/", "").replace(File.separator, "."),
+					addToList(listOfClass, jarEntry.getName().replace("/", ".").replace(File.separator, "."),
 							packageName);
 				} else if (prefix != null && jarEntry.getName().startsWith(prefix)) {
-					addToList(listOfClass, jarEntry.getName().replace("/", "").replace(File.separator, "."),
+					addToList(listOfClass, jarEntry.getName().replace("/", ".").replace(File.separator, "."),
 							packageName);
 				} else if (suffix != null && jarEntry.getName().endsWith(suffix)) {
-					addToList(listOfClass, jarEntry.getName().replace("/", "").replace(File.separator, "."),
+					addToList(listOfClass, jarEntry.getName().replace("/", ".").replace(File.separator, "."),
 							packageName);
 				}
-				System.out.println("File name:" + jarEntry.getName());
+				// System.out.println("File name:" + jarEntry.getName());
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -116,6 +118,7 @@ public class FilesUtility {
 
 	public static void addToList(List<String> listOfClass, String file, String packageName) {
 		if (packageName != null) {
+			System.out.println("Name of file:" + file);
 			if (file.startsWith(packageName)) {
 				listOfClass.add(file);
 			}

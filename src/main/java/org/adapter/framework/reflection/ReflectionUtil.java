@@ -19,6 +19,15 @@ public class ReflectionUtil {
 		return null;
 	}
 
+	public static Object createInstance(Class<?> className) {
+		try {
+			return className.newInstance();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
 	public static boolean isImplementedInterfaceOfType(Class<?> targetClass, Class<?> targetType) {
 		Class<?>[] implementatedInterfaces = targetClass.getInterfaces();
 		for (Class<?> interfaces : implementatedInterfaces) {

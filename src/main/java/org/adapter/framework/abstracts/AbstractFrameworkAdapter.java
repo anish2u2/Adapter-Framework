@@ -4,9 +4,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.adapter.framework.conf.Config;
+import org.adapter.framework.contracts.BeanFactory;
 import org.adapter.framework.contracts.Framework;
 import org.adapter.framework.contracts.FrameworkAdapter;
 import org.adapter.framework.contracts.InitFramework;
+import org.adapter.framework.event.contract.Context;
+import org.adapter.framework.event.contract.EventListener;
 import org.adapter.framework.impl.FrameworkAdapter.FramworkClassLoader;
 import org.adapter.framework.reflection.ReflectionUtil;
 import org.adapter.framework.xml.entity.FrameworkConfig;
@@ -14,7 +17,7 @@ import org.adapter.framework.xml.entity.FrameworkConfig;
 public abstract class AbstractFrameworkAdapter implements FrameworkAdapter {
 
 	private List<ClassLoader> loaders;
-	private List<Framework> frameworks;
+	private List<Framework> frameworks = new LinkedList<Framework>();
 
 	public AbstractFrameworkAdapter() {
 		loaders = new LinkedList<ClassLoader>();
@@ -23,7 +26,7 @@ public abstract class AbstractFrameworkAdapter implements FrameworkAdapter {
 	public void adaptFramework() {
 		Config config = Config.getInstance();
 		config.loadConfig();
-		List<InitFramework> initFrameworksList = new LinkedList<InitFramework>();
+		List<ModuleConfig> initFrameworksList = new LinkedList<ModuleConfig>();
 		for (FrameworkConfig frameworkConfig : config.getFrameworkConfig()) {
 			ClassLoader loader = getFrameworkClassLoader();
 			loaders.add(loader);
@@ -42,19 +45,33 @@ public abstract class AbstractFrameworkAdapter implements FrameworkAdapter {
 				}
 				((FramworkClassLoader) loader)
 						.loadClassfromPackage(frameworkConfig.getConfig().getComponentScanPackage().getPackageName());
-				initFrameworksList.add((InitFramework) ReflectionUtil.getObjectOfType(InitFramework.class,
+				ModuleConfig moduleConfig = new ModuleConfig();
+				moduleConfig.setInitFramework((InitFramework) ReflectionUtil.getObjectOfType(InitFramework.class,
 						convertToArray(((FramworkClassLoader) loader).getListOfLoadedClass())));
+				moduleConfig
+						.setEventListener((EventListener) ReflectionUtil.createInstance(((FramworkClassLoader) loader)
+								.loadClass(frameworkConfig.getConfig().getListener().getInitListener())));
+				initFrameworksList.add(moduleConfig);
+				/*
+				 * for (Class<?> clazz : ((FramworkClassLoader)
+				 * loader).getListOfLoadedClass()) { System.out.println(
+				 * "Loaded class:" + clazz.getName()); }
+				 */
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		}
 		System.out.println("Classess are loaded successfully. Now starting initializing sub-frameworks.");
-		for (InitFramework initFramework : initFrameworksList) {
-			System.out.println("Initramework:" + initFramework.getClass().getName());
+		for (ModuleConfig moduleConfig : initFrameworksList) {
+			System.out.println("Initramework:" + moduleConfig.getInitFramework().getClass().getName());
 			Framework framework = new org.adapter.framework.impl.Framework();
-			framework.init(initFramework);
+			Context context = framework.init(moduleConfig.getInitFramework());
+			BeansFactory.addBeanFactory((BeanFactory) context);
+			moduleConfig.getEventListener().onEvent(context);
 			frameworks.add(framework);
 		}
+		System.out.println("Context is initialized successfully..");
+		
 		System.out.println("System is initialized success fully.");
 	}
 
@@ -74,5 +91,27 @@ public abstract class AbstractFrameworkAdapter implements FrameworkAdapter {
 		ClassLoader loader = getFrameworkClassLoader();
 		loaders.add(loader);
 		return loader;
+	}
+
+	public static class ModuleConfig {
+		private InitFramework initFramework;
+		private EventListener eventListener;
+
+		public InitFramework getInitFramework() {
+			return initFramework;
+		}
+
+		public void setInitFramework(InitFramework initFramework) {
+			this.initFramework = initFramework;
+		}
+
+		public EventListener getEventListener() {
+			return eventListener;
+		}
+
+		public void setEventListener(EventListener eventListener) {
+			this.eventListener = eventListener;
+		}
+
 	}
 }
