@@ -1,8 +1,10 @@
 package org.adapter.framework.abstracts;
 
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.adapter.framework.annotations.InitApp;
 import org.adapter.framework.conf.Config;
 import org.adapter.framework.contracts.BeanFactory;
 import org.adapter.framework.contracts.Framework;
@@ -10,9 +12,12 @@ import org.adapter.framework.contracts.FrameworkAdapter;
 import org.adapter.framework.contracts.InitFramework;
 import org.adapter.framework.event.contract.Context;
 import org.adapter.framework.event.contract.EventListener;
+import org.adapter.framework.files.FilesUtility;
 import org.adapter.framework.impl.FrameworkAdapter.FramworkClassLoader;
 import org.adapter.framework.reflection.ReflectionUtil;
+import org.adapter.framework.xml.entity.AppConfig;
 import org.adapter.framework.xml.entity.FrameworkConfig;
+import org.adapter.framework.xml.utility.XMLUtility;
 
 public abstract class AbstractFrameworkAdapter implements FrameworkAdapter {
 
@@ -66,13 +71,44 @@ public abstract class AbstractFrameworkAdapter implements FrameworkAdapter {
 			System.out.println("Initramework:" + moduleConfig.getInitFramework().getClass().getName());
 			Framework framework = new org.adapter.framework.impl.Framework();
 			Context context = framework.init(moduleConfig.getInitFramework());
-			BeansFactory.addBeanFactory((BeanFactory) context);
+			BeansFactory.addBeanFactory((BeanFactory) context.getBeanfactory());
 			moduleConfig.getEventListener().onEvent(context);
 			frameworks.add(framework);
 		}
 		System.out.println("Context is initialized successfully..");
-		
-		System.out.println("System is initialized success fully.");
+
+		System.out.println("Reading App Config..");
+		try {
+			List<String> applist = FilesUtility.readFileNamesOfTypeFromJar(getRootLocation().toString(), null,
+					"app.xml");
+			AppConfig appConfig = null;
+			for (String app : applist) {
+				appConfig = (AppConfig) XMLUtility.unmarshal(app, AppConfig.class);
+			}
+			Object initAppBean = null;
+			InitApp annotatedObject = null;
+			for (BeanFactory beanFactory : BeansFactory.getBeanFactories()) {
+				try {
+					initAppBean = beanFactory.getBean(Class.forName(appConfig.getInitClass().getClassName()));
+					System.out.println("Found Class:" + initAppBean.getClass());
+					annotatedObject = Class.forName(appConfig.getInitClass().getClassName())
+							.getAnnotation(InitApp.class);
+					break;
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			injectAnnotatedFieldObjects(initAppBean, initAppBean.getClass().getSuperclass() != null
+					? initAppBean.getClass().getSuperclass() : initAppBean.getClass());
+			System.out.println("Starting App");
+			invokeAppInitMethod(initAppBean, annotatedObject);
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			System.out.println("NO App config found ..");
+		}
+
 	}
 
 	protected abstract ClassLoader getFrameworkClassLoader();
@@ -114,4 +150,12 @@ public abstract class AbstractFrameworkAdapter implements FrameworkAdapter {
 		}
 
 	}
+
+	protected abstract void invokeAppInitMethod(Object appInitObject, InitApp initApp);
+
+	private URL getRootLocation() {
+		return getClass().getProtectionDomain().getCodeSource().getLocation();
+	}
+
+	protected abstract void injectAnnotatedFieldObjects(Object object, Class<?> clazz);
 }

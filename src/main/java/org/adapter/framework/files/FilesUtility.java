@@ -118,7 +118,7 @@ public class FilesUtility {
 
 	public static void addToList(List<String> listOfClass, String file, String packageName) {
 		if (packageName != null) {
-			System.out.println("Name of file:" + file);
+			// System.out.println("Name of file:" + file);
 			if (file.startsWith(packageName)) {
 				listOfClass.add(file);
 			}
@@ -129,7 +129,7 @@ public class FilesUtility {
 
 	public static String[] readFileNamesOfType(String dir, String prefix, String suffix) {
 		File file = new File(dir);
-		System.out.println("Reading files ..");
+		// System.out.println("Reading files ..");
 		return file.list(new FileNameFilter(prefix, suffix));
 	}
 

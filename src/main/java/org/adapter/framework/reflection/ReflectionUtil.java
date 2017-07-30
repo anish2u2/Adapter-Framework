@@ -2,6 +2,8 @@ package org.adapter.framework.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,5 +64,14 @@ public class ReflectionUtil {
 			return listOfFields;
 		}
 		return null;
+	}
+
+	public static void invokeMethod(Method method, Object args[], Object object) {
+		try {
+			method.invoke(object, args);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
